@@ -1,7 +1,7 @@
 from random import randint
 
 # -----------------------------------___Переменные___-------------------------------------------------------------------
-# a = 0  #
+# a = 0 #
 b = '~' * 30  #
 c = ' Приветствуем вас '   #
 d = ' Капитан! '           #
@@ -22,7 +22,7 @@ class BoardOutException(Exception):
 
 
 class BoardUsedException(Exception):
-    """Выстрел в одну и туже точку"""
+    """Повторный выстрел в одну и туже координату"""
 
     def __str__(self):
         return "Капитан снаряд не может попасть в одну и туже точку дважды.\n Заряжай по новой.\n"
@@ -107,11 +107,11 @@ class Board:
         ]
         for a in ship.dots:
             for ax, ay in adjacent:
-                cur = Dot(a.x + ax, a.y + ay)
-                if not (self.out(cur)) and cur not in self.busy:
+                cont = Dot(a.x + ax, a.y + ay)
+                if not (self.out(cont)) and cont not in self.busy:
                     if verb:
-                        self.field[cur.x][cur.y] = "."
-                    self.busy.append(cur)
+                        self.field[cont.x][cont.y] = "."
+                    self.busy.append(cont)
 
     def __str__(self):                                                            # выводит доску в консоль
         res = ""
@@ -148,7 +148,7 @@ class Board:
                     print("Корабль повреждён!")
                     return True
 
-        self.field[a.x][a.y] = "+"                                                # Промах отмечаем на доске
+        self.field[a.x][a.y] = "T"                                                # Промах отмечаем на доске
         print("Не попал!")
         return False
 
@@ -165,20 +165,19 @@ class Player:
         self.board = board
         self.ai_board = ai_board
 
-    def ask(self):                                                              # В какую клетку он делается выстрел
+    def ask(self):                                                              # В какую клетку делается выстрел
         raise NotImplementedError()
 
     def move(self):                                                             # делаем ход в игре
         while True:
             try:
                 question = self.ask()
-                decision = self.aiboard.shot(question)
+                decision = self.ai_board.shot(question)
                 return decision
-            except:                                                               # Отлавливаем исключения
-                if BoardUsedException:
-                    print(BoardUsedException)
-                else:
-                    print(BoardOutException)
+            except BoardUsedException as bag:                                   # Обработка ошибки повторного выстрела
+                print(bag)                                                      # по координатам
+            except BoardOutException as bag:                                    # Обработка ошибки выстрела за пределы
+                print(bag)                                                      # доски
 
 
 class AI(Player):
@@ -253,26 +252,28 @@ class Game:
     def loop(self):                                                             # Игровой цикл
         num = 0
         while True:                                                             # интерфейс
-            print(f"""{ '~':~^30}\n{' Доска пользователя: ':^30}\n{self.us.board}""")
-            print(f"""{ '~':~^30}\n{' Доска компьютера: ':^30}\n{self.ai.board}""")
+            print(f"""{b[:-3]}\n{' Доска пользователя: ':^30}\n{self.us.board}""")
+            print(f"""{b[:-3]}\n{' Доска компьютера: ':^30}\n{self.ai.board}""")
             if num % 2 == 0:
-                print("-" * 20)
+                print(b[:-3])
                 print("Ходит пользователь!")
                 repeat = self.us.move()
             else:
-                print("-" * 20)
+                print(b[:-3])
                 print("Ходит компьютер!")
                 repeat = self.ai.move()
             if repeat:
                 num -= 1
 
             if self.ai.board.count == 7:
-                print("-" * 20)
+                print(f"""{b[:-3]}\n{' Доска компьютера: ':^30}\n{self.ai.board}""")
+                print(b[:-3])
                 print("Пользователь выиграл!")
                 break
 
             if self.us.board.count == 7:
-                print("-" * 20)
+                print(f"""{b[:-3]}\n{' Доска пользователя: ':^30}\n{self.us.board}""")
+                print(b[:-3])
                 print("Компьютер выиграл!")
                 break
             num += 1
