@@ -1,15 +1,22 @@
 # -----------------------------------___Импорт___-----------------------------------------------------------------------
+import random
 from random import randint
+import colorama
+from colorama import Fore, Back, Style                                  # Fore.BLUE + "~"
+
 
 # -----------------------------------___Переменные___-------------------------------------------------------------------
-# a = 0 #
-b = '~' * 30  #
+# a = 0  #
+b = Fore.BLUE + '~' * 39  #
 c = ' Приветствуем вас '   #
 d = ' Капитан! '           #
 e = 'Готовы к сражению?!'  #
+g = 9  # int(input("Введите размер поля: Число от 5 до 9)) Размер поля
 # x = 0  # Вертикаль
 # y = 0  # Горизонталь
-greetings = f"""{b:^30}\n{c:~^30}\n{d:~^30}\n{b}"""
+
+Privet = f"""{b:^39}\n{c:~^39}\n{d:~^39}\n{b}"""
+Pravila = f"""{ 'формат ввода: x y ':^39}\n{' x - номер строки  ':^39}\n{' y - номер столбца ':^39}"""
 
 
 # -----------------------------------___Внутренняя логика___------------------------------------------------------------
@@ -77,7 +84,7 @@ class Ship:
 # -----------------------------------___Игровая доска___----------------------------------------------------------------
 class Board:
     """Игровое поле (доска)"""
-    def __init__(self, hid=False, size=6):                                     # Поле
+    def __init__(self, hid=False, size=g):                                     # Поле
         self.size = size
         self.hid = hid
 
@@ -116,7 +123,7 @@ class Board:
 
     def __str__(self):                                                            # выводит доску в консоль
         res = ""
-        res += "  | 1 | 2 | 3 | 4 | 5 | 6 |"
+        res += "  | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |"
         for i, row in enumerate(self.field):
             res += f"\n{i + 1} | " + " | ".join(row) + " |"
 
@@ -139,7 +146,7 @@ class Board:
         for ship in self.ships:                                                     # Проверка на наличие корабля
             if a in ship.dots:                                                      # Попадание по кораблю
                 ship.lives -= 1
-                self.field[a.x][a.y] = "X"                                          # Отмечаем попадание по кораблю
+                self.field[a.x][a.y] = "X"                               # Отмечаем попадание по кораблю
                 if ship.lives == 0:
                     self.count += 1
                     self.contour(ship, verb=True)                                 # Обводим контур уничтоженного корабля
@@ -153,7 +160,7 @@ class Board:
         print("Не попал!")
         return False
 
-    def begin(self):                                                              # Список выстрелов
+    def begin(self):                                                              # Список выстрелов №№№№№№№
         self.busy = []
 
 
@@ -166,7 +173,7 @@ class Player:
         self.board = board
         self.ai_board = ai_board
 
-    def ask(self):                                                              # В какую клетку делается выстрел
+    def ask(self):                                                              # В какую клетку он делается выстрел
         raise NotImplementedError()
 
     def move(self):                                                             # делаем ход в игре
@@ -184,7 +191,7 @@ class Player:
 class AI(Player):
     """Класс Компьютер игрок """
     def ask(self):
-        a = Dot(randint(0, 5), randint(0, 5))
+        a = Dot(randint(0, 8), randint(0, 8))
         print(f"Ход компьютера: {a.x + 1} {a.y + 1}")
         return a
 
@@ -213,7 +220,8 @@ class User(Player):
 # -----------------------------------___Игровой процесс___--------------------------------------------------------------
 class Game:
     """Игровой процесс"""
-    def __init__(self, size=6):
+    def __init__(self, size=g):
+        self.lens = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
         self.size = size
         player = self.random_board()
         computer = self.random_board()
@@ -229,10 +237,9 @@ class Game:
         return board
 
     def random_place(self):                                                          # Генератор расстановки кораблей
-        lens = [3, 2, 2, 1, 1, 1, 1]
         board = Board(size=self.size)
         attempt = 0
-        for length in lens:
+        for length in self.lens:
             while True:
                 attempt += 1
                 if attempt > 1000:
@@ -247,45 +254,45 @@ class Game:
         return board
 
     def greet(self):                                                                # Приветствие пользователя
-        print(greetings)
-        print(f"""{ 'формат ввода: x y ':^30}\n{' x - номер строки  ':^30}\n{' y - номер столбца ':^30}""")
+        print(Privet)
+        print(Pravila)
 
-    def print_boards(self):
-        print(f"""{b[:-3]}\n{' Доска пользователя: ':^30}\n{self.us.board}""")
-        print(f"""{b[:-3]}\n{' Доска компьютера: ':^30}\n{self.ai.board}""")
+    def print_boards(self):                                                         # Вывод игровых досок
+        print(f"""{'~':~^39}\n{' Доска пользователя: ':^39}\n{self.us.board}""")
+        print(f"""{'~':~^39}\n{' Доска компьютера: ':^39}\n{self.ai.board}""")
 
-    def loop(self):                                                             # Игровой цикл
+    def loop(self):                                                                 # Игровой цикл
         num = 0
-        while True:                                                             # интерфейс
+        while True:                                                                 # интерфейс
             self.print_boards()
             if num % 2 == 0:
-                print(b[:-3])
+                print(b)
                 print("Ходит пользователь!")
                 repeat = self.us.move()
             else:
-                print(b[:-3])
+                print(b)
                 print("Ходит компьютер!")
                 repeat = self.ai.move()
             if repeat:
                 num -= 1
 
             if self.ai.board.count == 7:
-                print(f"""{b[:-3]}\n{' Доска компьютера: ':^30}\n{self.ai.board}""")
-                print(b[:-3])
+                self.print_boards()
+                print(b)
                 print("Пользователь выиграл!")
                 break
 
             if self.us.board.count == 7:
-                print(f"""{b[:-3]}\n{' Доска пользователя: ':^30}\n{self.us.board}""")
-                print(b[:-3])
+                self.print_boards()
+                print(b)
                 print("Компьютер выиграл!")
                 break
             num += 1
 
-    def start(self):                                                             # Запуск игры
+    def start(self):                                                                # Запуск игры
         self.greet()
         self.loop()
 
 
-g = Game()
-g.start()
+ga = Game()
+ga.start()
